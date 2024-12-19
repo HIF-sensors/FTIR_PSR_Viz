@@ -12,4 +12,8 @@ This repository represents a simple workflow to visualize Hyperspectral data fro
 - pip install -r /path/to/requirements.txt
 - python gui.py
 - Click "Load files" to load text files
-- Click "Open Images" to vizualize the hyperspectral plots
+- Click "Open Data" to vizualize the hyperspectral plots
+
+# TODO
+- Add preprocessing functionality
+- Automated peak detection method
