@@ -21,7 +21,6 @@ class Dataloader:
             filename = os.path.basename(file_path)
             sample_energy = [filename]
             wavelength_list = ['sample']
-            print(len(wavelength_list))
             with open(file_path, 'r') as f:
                 lines = f.readlines()
             
