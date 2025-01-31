@@ -10,6 +10,7 @@ class Window(QWidget):
         super().__init__(parent)
         self.filenames = None
         self.batchname = None
+        self.dataloader = None
         self.raw_df = None
         self.library_df = None
         self.setFixedWidth(400)
@@ -56,8 +57,8 @@ class Window(QWidget):
         self.filenames, _ = QFileDialog.getOpenFileNames(self)
         if self.filenames:
             self.label1.setText("Data loaded")
-            dataloader = Dataloader(self.filenames)
-            self.raw_df = dataloader.raw_df
+            self.dataloader = Dataloader(self.filenames)
+            # self.raw_df = dataloader.raw_df
         
         # Get the batchname
         clock = 2
@@ -79,8 +80,11 @@ class Window(QWidget):
             
 
     def open_data(self):
+        df_plot = {'Raw':self.dataloader.raw_df,
+                #    'Min-Max Normalization': self.dataloader.normalized_df
+                   }
         # This creates vizualization to plot multiple data
-        viz(self.batchname, self.raw_df, self.library_df)
+        viz(self.batchname, df_plot, self.library_df)
         # Check if del obj is possible
         self.filenames = None
         self.raw_df = None
