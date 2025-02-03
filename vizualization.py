@@ -4,16 +4,25 @@ import plotly.express as px
 import numpy as np
 
 def viz(batch_name, df_plot, library, sensor='SWIR'):
-    for key, df in df_plot.items():
+    fig = go.Figure()
+    buttons = []
+    start = 0
+    end = start
+    visible_dict = {}
+    for key_index, (key, df) in enumerate(df_plot.items()):
         wavelengths = list(df.columns)[1:]
         data = []
-        max_energy = df.iloc[:, 1:].max().max()+1 # For plotting vertical lines
-        min_energy = df.iloc[:, 1:].min().min()-1 # For plotting vertical lines
+        max_energy = df.iloc[:, 1:].max().max() # For plotting vertical lines
+        min_energy = df.iloc[:, 1:].min().min() # For plotting vertical lines
         for index, row in df.iterrows():
             sample_name = list(row)[0]
             energy = list(row)[1:]
-            graph = go.Scatter(x=wavelengths, y=energy, name = sample_name, mode='lines')
+            graph = go.Scatter(x=wavelengths, y=energy, name = sample_name, mode='lines',
+                               visible=(key_index == 0)
+                               )
             data.append(graph)
+            fig.add_trace(graph)
+            end += 1
         
         # Select specific library according to sensor
         # Iterate over the rows in the library and
@@ -22,7 +31,7 @@ def viz(batch_name, df_plot, library, sensor='SWIR'):
         # append the lines in data
         lib = library[library['sensor'] == sensor]
         unique_groups = lib['polymer'].unique()
-        color_map = {group: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)] for i, group in enumerate(unique_groups)}
+        color_map = {group: px.colors.qualitative.Light24[i % len(px.colors.qualitative.Light24)] for i, group in enumerate(unique_groups)}
         for index, row in lib.iterrows():
             group_name = row['polymer']
             wavelengths = [float(x) for x in ast.literal_eval(row['wavelengths'])]
@@ -34,11 +43,41 @@ def viz(batch_name, df_plot, library, sensor='SWIR'):
                     name=group_name,
                     line=dict(color=color_map[group_name]),
                     legendgroup=group_name,
-                    showlegend=True if i == 0 else False
+                    showlegend=True if i == 0 else False,
+                    visible=(key_index == 0)
                 )
                 data.append(line)
+                fig.add_trace(line)
+                end += 1
 
-    fig = go.Figure(data=data)
+        visible_dict[key] = (start, end)
+        start = end
+        
+    # Buttons for dropdown menu
+    for dd_key, limit in visible_dict.items():
+        visible = [False] * len(fig.data)
+        visible[limit[0] : limit[1]] = [True] * (limit[1]-limit[0])
+        buttons.append(dict(
+            label=dd_key,
+            method="update",
+            args=[{"visible": visible},
+                    {"title": f"{batch_name} : {sensor} - {dd_key}"}]
+        ))
+    
+    # Add dropdown menu
+    fig.update_layout(
+        updatemenus=[go.layout.Updatemenu(
+            buttons=buttons,
+            direction="down",
+            pad={"r": 10, "t": 10},
+            showactive=False,
+            x=0.1,
+            xanchor="left",
+            y=1.1,
+            yanchor="top"
+        )]
+    )
+
     text = batch_name + "_" + sensor
     fig.update_layout(
         # yaxis_range=[0, 1],

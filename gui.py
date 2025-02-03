@@ -61,7 +61,7 @@ class Window(QWidget):
             # self.raw_df = dataloader.raw_df
         
         # Get the batchname
-        clock = 2
+        clock = 3
         file_path = self.filenames[0]
         while clock:
             file_path, folder = os.path.split(file_path)
@@ -80,8 +80,9 @@ class Window(QWidget):
             
 
     def open_data(self):
-        df_plot = {'Raw':self.dataloader.raw_df,
-                #    'Min-Max Normalization': self.dataloader.normalized_df
+        df_plot = {
+                'Reflectance (.sed )':self.dataloader.raw_df,
+                   'Y-axis rescaled': self.dataloader.rescaled_df
                    }
         # This creates vizualization to plot multiple data
         viz(self.batchname, df_plot, self.library_df)
