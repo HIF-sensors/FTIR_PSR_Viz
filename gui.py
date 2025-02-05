@@ -11,7 +11,7 @@ class Window(QWidget):
         self.filenames = None
         self.batchname = None
         self.dataloader = None
-        self.raw_df = None
+        self.reflectance_df = None
         self.library_df = None
         self.setFixedWidth(400)
         self.setFixedHeight(400)
@@ -57,8 +57,7 @@ class Window(QWidget):
         self.filenames, _ = QFileDialog.getOpenFileNames(self)
         if self.filenames:
             self.label1.setText("Data loaded")
-            self.dataloader = Dataloader(self.filenames)
-            # self.raw_df = dataloader.raw_df
+            self.dataloader = Dataloader(reflectance_paths=self.filenames)
         
         # Get the batchname
         clock = 3
@@ -81,14 +80,14 @@ class Window(QWidget):
 
     def open_data(self):
         df_plot = {
-                'Reflectance (.sed )':self.dataloader.raw_df,
+                'Reflectance (.sed )':self.dataloader.reflectance_df,
                    'Y-axis rescaled': self.dataloader.rescaled_df
                    }
         # This creates vizualization to plot multiple data
         viz(self.batchname, df_plot, self.library_df)
         # Check if del obj is possible
         self.filenames = None
-        self.raw_df = None
+        self.reflectance_df = None
         self.library_df = None
         self.label1.setText("")
         self.label2.setText("")

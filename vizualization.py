@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 
-def viz(batch_name, df_plot, library, sensor='SWIR'):
+def viz(batch_name, df_plot, library=None, sensor='SWIR'):
     fig = go.Figure()
     buttons = []
     start = 0
@@ -29,26 +29,27 @@ def viz(batch_name, df_plot, library, sensor='SWIR'):
         # draw a vertical line at each wavelength
         # Name them as polymer groups
         # append the lines in data
-        lib = library[library['sensor'] == sensor]
-        unique_groups = lib['polymer'].unique()
-        color_map = {group: px.colors.qualitative.Light24[i % len(px.colors.qualitative.Light24)] for i, group in enumerate(unique_groups)}
-        for index, row in lib.iterrows():
-            group_name = row['polymer']
-            wavelengths = [float(x) for x in ast.literal_eval(row['wavelengths'])]
-            for i, x_value in enumerate(wavelengths):
-                line = go.Scatter(
-                    x=[x_value]*5,  # Duplicate x values for vertical lines
-                    y=np.linspace(min_energy, max_energy, num=5).tolist(),  # Alternate y values for vertical lines
-                    mode='lines',
-                    name=group_name,
-                    line=dict(color=color_map[group_name]),
-                    legendgroup=group_name,
-                    showlegend=True if i == 0 else False,
-                    visible=(key_index == 0)
-                )
-                data.append(line)
-                fig.add_trace(line)
-                end += 1
+        if library:
+            lib = library[library['sensor'] == sensor]
+            unique_groups = lib['polymer'].unique()
+            color_map = {group: px.colors.qualitative.Light24[i % len(px.colors.qualitative.Light24)] for i, group in enumerate(unique_groups)}
+            for index, row in lib.iterrows():
+                group_name = row['polymer']
+                wavelengths = [float(x) for x in ast.literal_eval(row['wavelengths'])]
+                for i, x_value in enumerate(wavelengths):
+                    line = go.Scatter(
+                        x=[x_value]*5,  # Duplicate x values for vertical lines
+                        y=np.linspace(min_energy, max_energy, num=5).tolist(),  # Alternate y values for vertical lines
+                        mode='lines',
+                        name=group_name,
+                        line=dict(color=color_map[group_name]),
+                        legendgroup=group_name,
+                        showlegend=True if i == 0 else False,
+                        visible=(key_index == 0)
+                    )
+                    data.append(line)
+                    fig.add_trace(line)
+                    end += 1
 
         visible_dict[key] = (start, end)
         start = end
