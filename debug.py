@@ -1,4 +1,4 @@
-from dataloader import *
+from dataloader0 import *
 from vizualization import *
 if __name__ == '__main__':
     file_paths = ["/path/to/the/file"]

@@ -3,13 +3,16 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 
-def viz(batch_name, df_plot, library=None, sensor='SWIR'):
+def viz(batch_name, df_plot, library=None, sensor='SWIR', download=True):
     fig = go.Figure()
     buttons = []
     start = 0
     end = start
     visible_dict = {}
-    for key_index, (key, df) in enumerate(df_plot.items()):
+    y_axis_dict = {}
+    for key_index, (key, plots) in enumerate(df_plot.items()):
+        df = plots[0]
+        y_axis_dict[key] = plots[1]
         wavelengths = list(df.columns)[1:]
         data = []
         max_energy = df.iloc[:, 1:].max().max() # For plotting vertical lines
@@ -18,7 +21,8 @@ def viz(batch_name, df_plot, library=None, sensor='SWIR'):
             sample_name = list(row)[0]
             energy = list(row)[1:]
             graph = go.Scatter(x=wavelengths, y=energy, name = sample_name, mode='lines',
-                               visible=(key_index == 0)
+                               visible=(key_index == 0),
+                            #    hoverinfo='x'
                                )
             data.append(graph)
             fig.add_trace(graph)
@@ -29,24 +33,38 @@ def viz(batch_name, df_plot, library=None, sensor='SWIR'):
         # draw a vertical line at each wavelength
         # Name them as polymer groups
         # append the lines in data
-        if library:
+        if library is not None:
             lib = library[library['sensor'] == sensor]
             unique_groups = lib['polymer'].unique()
             color_map = {group: px.colors.qualitative.Light24[i % len(px.colors.qualitative.Light24)] for i, group in enumerate(unique_groups)}
             for index, row in lib.iterrows():
                 group_name = row['polymer']
+                colour = row['colour']
                 wavelengths = [float(x) for x in ast.literal_eval(row['wavelengths'])]
                 for i, x_value in enumerate(wavelengths):
                     line = go.Scatter(
-                        x=[x_value]*5,  # Duplicate x values for vertical lines
-                        y=np.linspace(min_energy, max_energy, num=5).tolist(),  # Alternate y values for vertical lines
-                        mode='lines',
+                        x=[x_value]*2,  # Duplicate x values for vertical lines
+                        y=np.linspace(min_energy, max_energy, num=2).tolist(),  # Alternate y values for vertical lines
+                        mode='lines+text',
                         name=group_name,
-                        line=dict(color=color_map[group_name]),
+                        line={'color': colour},
+                        # line=dict(color=color_map[group_name]),
                         legendgroup=group_name,
                         showlegend=True if i == 0 else False,
-                        visible=(key_index == 0)
+                        # showlegend=False,
+                        visible=(key_index == 0),
+                        textposition="top left",
+                        
                     )
+                    # For library text
+                    # fig.add_annotation(
+                    #     x=x_value,
+                    #     y=max_energy,
+                    #     text=group_name,
+                    #     textangle=-90,
+                    #     showarrow=False,
+                    #     font=dict(size=14)
+                    # )
                     data.append(line)
                     fig.add_trace(line)
                     end += 1
@@ -62,9 +80,11 @@ def viz(batch_name, df_plot, library=None, sensor='SWIR'):
             label=dd_key,
             method="update",
             args=[{"visible": visible},
+                  {'yaxis': {'title': y_axis_dict[dd_key]}},
                     {"title": f"{batch_name} : {sensor} - {dd_key}"}]
         ))
     
+    # fig.add_annotation(textangle=-90)
     # Add dropdown menu
     fig.update_layout(
         updatemenus=[go.layout.Updatemenu(
@@ -97,7 +117,10 @@ def viz(batch_name, df_plot, library=None, sensor='SWIR'):
         },
     )
     fig.update_layout(hovermode="x unified")
-    fig.write_html(text + ".html")
+    fig.update_traces(textposition='top center')
+
+    if download:
+        fig.write_html(text + ".html")
      
     fig.show()
     
