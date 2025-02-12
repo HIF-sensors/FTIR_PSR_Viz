@@ -155,7 +155,8 @@ class Window(QWidget):
         if self.reflectance_files:
             self.label3.setText("Reflectance loaded")
             self.reflectance_df = load_reflectance(self.reflectance_files)
-            pass
+            message = "Reflectance loaded" if self.reflectance_df is not None else "Error!"
+            self.label3.setText(message)
         
         # Get the batchname
         if self.sensor == 'VNIR_SWIR':
@@ -172,10 +173,10 @@ class Window(QWidget):
         # Open the file dialog and get the selected file name
         self.absorbance_files, _ = QFileDialog.getOpenFileNames(self)
         if self.absorbance_files:
-            self.label5.setText("Absorbance loaded") 
             self.absorbance_df = load_absorbance(self.absorbance_files)
-        
-
+            message = "Absorbance loaded" if self.absorbance_df is not None else "Error!"
+            self.label5.setText(message)
+            
 
     def open_library(self):
         # Open the file dialog and get the selected excel file
@@ -207,7 +208,7 @@ class Window(QWidget):
         if self.absorbance_files:
             df_plot['Absorbance'] = (self.absorbance_df, 'Absorbance')
         if self.rescaling_flag:
-            df_plot['Reflectance (Re-scaled)'] = (self.reflectance_rescaled_df, 'Absorbance')
+            df_plot['Reflectance (Re-scaled)'] = (self.reflectance_rescaled_df, 'Reflectance')
             df_plot['Absorbance (Re-scaled)'] = (self.absorbance_rescaled_df, 'Absorbance')
             pass
 
@@ -220,14 +221,14 @@ class Window(QWidget):
         self.reflectance_df = None
         self.absorbance_df = None
         self.batchname = None
-        self.library_df = None
-        self.rescaling_flag = False
+        # self.library_df = None
+        # self.rescaling_flag = False
         self.reflectance_rescaled_df = None
         self.absorbance_rescaled_df = None
-        self.download_flag = False
+        # self.download_flag = False
         self.label3.setText("")
         self.label5.setText("")
-        self.label7.setText("")
+        # self.label7.setText("")
 
 
 
