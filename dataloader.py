@@ -18,8 +18,9 @@ def load_reflectance(reflectance_paths):
         with open(file_path, 'r') as f:
             lines = f.readlines()
         # Check if it's actually 'Reflectance'
-        signal_type = lines[1].strip().split(";")[-1]
-        if signal_type != 'Reflectance':
+        signal_type_psr = lines[5].split(":")[-1].strip()
+        signal_type_ftir = lines[1].strip().split(";")[-1]
+        if signal_type_psr != 'REFLECTANCE' and signal_type_ftir != 'Reflectance':
             return None
 
         for line0 in lines:

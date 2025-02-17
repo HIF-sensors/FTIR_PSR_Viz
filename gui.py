@@ -89,8 +89,8 @@ class Window(QWidget):
 
          # Select Library file
         self.label6 = QLabel(self)
-        self.label6.setObjectName('Select library for the specified sensor (Optional)')
-        self.label6.setText('Select library for the specified sensor (Optional)')  
+        self.label6.setObjectName('Select fingerprint library for the specified sensor (Optional)')
+        self.label6.setText('Select fingerprint library for the specified sensor (Optional)')  
         self.label6.setFont(font)
         self.label6.setGeometry(QRect(10, 265, 365, 20))
 
