@@ -67,6 +67,29 @@ def load_absorbance(absorbance_paths):
     absorbance_df = pd.DataFrame(all_energy, columns=wavelength_list)
     return absorbance_df
 
+def load_refSpectrum(spectrum_paths):
+    all_energy = []
+    for file_path in spectrum_paths:
+        filename = os.path.basename(file_path)
+        sample_energy = []
+        wavelength_list = []
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+        for line0 in lines:
+            line = line0.strip().split(" ")
+            if is_float(line[1]):
+                wavelength = float(line[1])
+                energy = float(line[-1])
+                sample_energy.append(energy)
+                wavelength_list.append(wavelength)
+                pass
+        wavelength_list = ['polymer'] + wavelength_list
+        sample_energy = [filename] + sample_energy
+        all_energy.append(sample_energy)
+    refSpectrum_df = pd.DataFrame(all_energy, columns=wavelength_list)
+    return refSpectrum_df
+
+
 
 
 

@@ -3,7 +3,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 
-def viz(batch_name, df_plot, library=None, sensor='SWIR', download=True):
+def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
+        sensor='SWIR', download=True):
     fig = go.Figure()
     buttons = []
     start = 0
@@ -28,13 +29,24 @@ def viz(batch_name, df_plot, library=None, sensor='SWIR', download=True):
             fig.add_trace(graph)
             end += 1
         
-        # Select specific library according to sensor
-        # Iterate over the rows in the library and
-        # draw a vertical line at each wavelength
-        # Name them as polymer groups
-        # append the lines in data
-        if library is not None:
-            lib = library[library['sensor'] == sensor]
+        # Visualisation for Reference Spectrum libraries
+        if reference_Spectrums is not None:
+            wavelengths = list(reference_Spectrums.columns)[1:]
+            for index, row in reference_Spectrums.iterrows():
+                polymer_name = row['polymer']
+                energy = list(row)[1:]
+                graph = go.Scatter(x=wavelengths, y=energy, name = polymer_name, mode='lines',
+                                visible=(key_index == 0),
+                                #    hoverinfo='x'
+                                )
+                data.append(graph)
+                fig.add_trace(graph)
+                end += 1
+            
+        
+        # Visualisation for fingerprint libraries
+        if fingerprint_library is not None:
+            lib = fingerprint_library[fingerprint_library['sensor'] == sensor]
             unique_groups = lib['polymer'].unique()
             color_map = {group: px.colors.qualitative.Light24[i % len(px.colors.qualitative.Light24)] for i, group in enumerate(unique_groups)}
             for index, row in lib.iterrows():
@@ -48,10 +60,8 @@ def viz(batch_name, df_plot, library=None, sensor='SWIR', download=True):
                         mode='lines+text',
                         name=group_name,
                         line={'color': colour},
-                        # line=dict(color=color_map[group_name]),
                         legendgroup=group_name,
                         showlegend=True if i == 0 else False,
-                        # showlegend=False,
                         visible=(key_index == 0),
                         textposition="top left",
                         
@@ -71,6 +81,7 @@ def viz(batch_name, df_plot, library=None, sensor='SWIR', download=True):
 
         visible_dict[key] = (start, end)
         start = end
+
         
     # Buttons for dropdown menu
     for dd_key, limit in visible_dict.items():
