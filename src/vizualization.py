@@ -61,10 +61,10 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
                         name=group_name,
                         line={'color': colour},
                         legendgroup=group_name,
+                        # showlegend=False,
                         showlegend=True if i == 0 else False,
                         visible=(key_index == 0),
                         textposition="top left",
-                        
                     )
                     # For library text
                     # fig.add_annotation(
@@ -77,10 +77,60 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
                     # )
                     data.append(line)
                     fig.add_trace(line)
+                    # Add a vertical line at x=2 using data coordinates
+                    
                     end += 1
+                # ### NEW
+                # # Update layout to include the vertical lines' initial range
+                # fig.update_layout(
+                #     shapes=[dict(
+                #         x0=line_pos, x1=line_pos, y0=0, y1=4, xref='x', yref='y',
+                #         line_width=1, line_color='red'
+                #     ) for line_pos in wavelengths],
+                #     # xaxis_title="X-Axis",
+                #     # yaxis_title="Y-Axis",
+                #     # title="Dynamic Vertical Line Example",
+                # )
+
+                # # JavaScript function to update vertical line ranges
+                # # The actual implementation would depend on how you are serving your plot (e.g., Dash, Flask, or directly as HTML)
+                # # Here's a conceptual JavaScript code snippet for use with a browser-based Plotly plot:
+
+                # '''
+                # <script>
+                # function updateVerticalLines(traceIndices) {
+                # // traceIndices: array of indices of visible traces
+
+                # // 1. Get the maximum y-value of the visible traces
+                # let maxY = 0;
+                # for (let i = 0; i < traceIndices.length; i++) {
+                #     let traceIndex = traceIndices[i];
+                #     let trace = Plotly.getData()[traceIndex]; // Access the trace data
+                #     let traceMaxY = Math.max(...trace.y); // Find the maximum Y value
+                #     maxY = Math.max(maxY, traceMaxY); // Overall maximum
+                # }
+
+                # // 2. Update the y-values of the vertical lines
+                # let update = {};
+                # for (let i = 0; i < vertical_lines.length; i++) {
+                #     let lineIndex = 3 + i; // Assuming lines are added after the first 3 traces
+                #     update[`shapes[${i}].y1`] = maxY; // Update the height of the shape
+                # }
+
+                # // 3. Relayout the plot
+                # Plotly.relayout('yourPlotDivId', update);
+                # }
+
+                # // Example usage (call this function when legend items are clicked)
+                # // You'll need to add event listeners to your legend items to call this function
+                # </script>
+                # '''
+                # ######
 
         visible_dict[key] = (start, end)
         start = end
+
+        
 
         
     # Buttons for dropdown menu

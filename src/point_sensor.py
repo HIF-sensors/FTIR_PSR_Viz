@@ -3,13 +3,17 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
-from dataloader import *
-from vizualization import *
-from pre_processing import *
+from .dataloader import *
+from .vizualization import *
+from .pre_processing import *
 
-class Window(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+class PointSensor(QScrollArea):
+    def __init__(self):
+        super(PointSensor, self).__init__()
+        self.widget1 = QWidget()
+        layout1 = QGridLayout(self.widget1)
+        layout1.setAlignment(Qt.AlignTop)
+
         self.sensor = None
         self.reflectance_files = None
         self.absorbance_files = None
@@ -24,11 +28,11 @@ class Window(QWidget):
         self.reflectance_rescaled_df = None
         self.absorbance_rescaled_df = None
         self.download_flag = False
-        self.setFixedWidth(500)
-        self.setFixedHeight(670)
+        # self.setFixedWidth(500)
+        # self.setFixedHeight(670)
 
         # Choose sensor
-        self.label1 = QLabel(self)
+        self.label1 = QLabel(self.widget1)
         self.label1.setObjectName('Choose point sensor: ')
         self.label1.setText('Choose point sensor: ')
         font = QFont()
@@ -39,9 +43,9 @@ class Window(QWidget):
 
 
         # creating check box for choosing sensor
-        self.checkBoxSWIR = QCheckBox("VNIR/SWIR", self) 
+        self.checkBoxSWIR = QCheckBox("VNIR/SWIR", self.widget1) 
         self.checkBoxSWIR.setGeometry(10, 50, 100, 20) 
-        self.checkBoxMWIR = QCheckBox("MWIR/LWIR", self) 
+        self.checkBoxMWIR = QCheckBox("MWIR/LWIR", self.widget1) 
         self.checkBoxMWIR.setGeometry(120, 50, 100, 20)
 
         # calling the uncheck method if any check box state is changed 
@@ -49,63 +53,63 @@ class Window(QWidget):
         self.checkBoxMWIR.stateChanged.connect(self.select_sensor) 
 
          # Select Reflectance files
-        self.label2 = QLabel(self)
+        self.label2 = QLabel(self.widget1)
         self.label2.setObjectName('Select single or multiple "Reflectance" files')
         self.label2.setText('Select single or multiple "Reflectance" files')  
         self.label2.setFont(font)
         self.label2.setGeometry(QRect(10, 90, 300, 20))
 
         # Button for loading Reflectance
-        self.btn1 = QPushButton(self)
+        self.btn1 = QPushButton(self.widget1)
         self.btn1.setObjectName('Load Reflectance')
         self.btn1.setText('Load Reflectance')
         self.btn1.setGeometry(QRect(10, 120, 130, 40))
         self.btn1.clicked.connect(self.reflectance_file_dialog)
 
         # Message for loading Reflectance files
-        self.label3 = QLabel(self)
+        self.label3 = QLabel(self.widget1)
         self.label3.setObjectName('Reflectance loaded')
         self.label3.setText('')
         self.label3.setStyleSheet("border: 0.5px solid gray;")
         self.label3.setGeometry(QRect(150, 125, 130, 30))
 
         # Select Absorbance files
-        self.label4 = QLabel(self)
+        self.label4 = QLabel(self.widget1)
         self.label4.setObjectName('Select single or multiple "Absorbance" files (Optional)')
         self.label4.setText('Select single or multiple "Absorbance" files (Optional)')  
         self.label4.setFont(font)
         self.label4.setGeometry(QRect(10, 180, 365, 20))
 
         # Button for loading Absorbance
-        self.btn2 = QPushButton(self)
+        self.btn2 = QPushButton(self.widget1)
         self.btn2.setObjectName('Load Absorbance')
         self.btn2.setText('Load Absorbance')
         self.btn2.setGeometry(QRect(10, 210, 130, 40))
         self.btn2.clicked.connect(self.absorbance_file_dialog)
 
         # Message for loading Absorbance files
-        self.label5 = QLabel(self)
+        self.label5 = QLabel(self.widget1)
         self.label5.setObjectName('Absorbance loaded')
         self.label5.setText('')
         self.label5.setStyleSheet("border: 0.5px solid gray;")
         self.label5.setGeometry(QRect(150, 215, 130, 30))
 
          # Select Library file
-        self.label6 = QLabel(self)
+        self.label6 = QLabel(self.widget1)
         self.label6.setObjectName('Select fingerprint library for the specified sensor (Optional)')
         self.label6.setText('Select fingerprint library for the specified sensor (Optional)')  
         self.label6.setFont(font)
         self.label6.setGeometry(QRect(10, 265, 400, 20))
 
         # Button for loading Library
-        self.btn3 = QPushButton(self)
+        self.btn3 = QPushButton(self.widget1)
         self.btn3.setObjectName('Load Fingerprints')
-        self.btn3.setText('Load Library')
+        self.btn3.setText('Load Fingerprints')
         self.btn3.setGeometry(QRect(10, 295, 130, 40))
         self.btn3.clicked.connect(self.open_library)
 
         # Message for library files
-        self.label7 = QLabel(self)
+        self.label7 = QLabel(self.widget1)
         self.label7.setObjectName('Fingerprints loaded')
         self.label7.setText('')
         self.label7.setStyleSheet("border: 0.5px solid gray;")
@@ -113,21 +117,21 @@ class Window(QWidget):
 
         #### test
          # Select Reference spectrum
-        self.label8 = QLabel(self)
+        self.label8 = QLabel(self.widget1)
         self.label8.setObjectName('Select Reference spectrum for the specified sensor (Optional)')
         self.label8.setText('Select Reference spectrum for the specified sensor (Optional)')  
         self.label8.setFont(font)
         self.label8.setGeometry(QRect(10, 350, 420, 20))
 
         # Button for loading Reference spectrum
-        self.btn4 = QPushButton(self)
+        self.btn4 = QPushButton(self.widget1)
         self.btn4.setObjectName('Load Spectrums')
         self.btn4.setText('Load Spectrums')
         self.btn4.setGeometry(QRect(10, 380, 130, 40))
         self.btn4.clicked.connect(self.open_spectrums)
 
         # Message for Reference spectrum
-        self.label9 = QLabel(self)
+        self.label9 = QLabel(self.widget1)
         self.label9.setObjectName('Spectrums loaded')
         self.label9.setText('')
         self.label9.setStyleSheet("border: 0.5px solid gray;")
@@ -135,35 +139,39 @@ class Window(QWidget):
         #########
 
         # Select pre-processing method
-        self.label10 = QLabel(self)
+        self.label10 = QLabel(self.widget1)
         self.label10.setObjectName('Select Pre-processing method (Optional)')
         self.label10.setText('Select Pre-processing method (Optional)')  
         self.label10.setFont(font)
         self.label10.setGeometry(QRect(10, 435, 365, 20))
 
         # creating check box for choosing sensor
-        self.checkBoxRescaling = QCheckBox("Y-axis rescaling", self) 
+        self.checkBoxRescaling = QCheckBox("Y-axis rescaling", self.widget1) 
         self.checkBoxRescaling.setGeometry(10, 465, 160, 30)
         self.checkBoxRescaling.stateChanged.connect(self.select_rescaling)
 
         # Start visualization
-        self.label11 = QLabel(self)
+        self.label11 = QLabel(self.widget1)
         self.label11.setObjectName('Data visualisation')
         self.label11.setText('Data visualisation')  
         self.label11.setFont(font)
         self.label11.setGeometry(QRect(10, 515, 365, 20))
 
         # creating check box for choosing sensor
-        self.checkBoxDownload = QCheckBox("Download as .html", self) 
+        self.checkBoxDownload = QCheckBox("Download as .html", self.widget1) 
         self.checkBoxDownload.setGeometry(10, 545, 150, 30)
         self.checkBoxDownload.stateChanged.connect(self.select_download)
 
         # For opening data
-        self.btn5 = QPushButton(self)
+        self.btn5 = QPushButton(self.widget1)
         self.btn5.setObjectName('Open Data')
         self.btn5.setText('Open Data')
         self.btn5.setGeometry(QRect(10, 585, 111, 40))
         self.btn5.clicked.connect(self.open_data)
+
+        self.setWidget(self.widget1)
+        self.setWidgetResizable(True)
+        self.widget1.setLayout(layout1)
         
     def select_sensor(self, state):
         if state == Qt.Checked: 
@@ -268,8 +276,8 @@ class Window(QWidget):
 
 
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = Window()
-    window.show()
-    sys.exit(app.exec())
+# if __name__ == "__main__":
+#     app = QApplication(sys.argv)
+#     window = Window()
+#     window.show()
+#     sys.exit(app.exec())
