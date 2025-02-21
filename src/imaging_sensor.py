@@ -14,82 +14,58 @@ class ImagingSensor(QScrollArea):
         layout1 = QGridLayout(self.widget1)
         layout1.setAlignment(Qt.AlignTop)
 
-        self.sensor = None
-        self.reflectance_files = None
-        self.absorbance_files = None
-        self.reflectance_df = None
-        self.absorbance_df = None
+        self.image_folder = None
+        self.averaged_df = None
         self.batchname = None
         self.lib_path = None
         self.library_df = None
         self.spectrum_paths = None
         self.refSpectrum_df = None
         self.rescaling_flag = False
-        self.reflectance_rescaled_df = None
-        self.absorbance_rescaled_df = None
         self.download_flag = False
-        # self.setFixedWidth(500)
-        # self.setFixedHeight(670)
 
-        # # Choose sensor
-        # self.label1 = QLabel(self.widget1)
-        # self.label1.setObjectName('Choose point sensor: ')
-        # self.label1.setText('Choose point sensor: ')
         font = QFont()
         font.setBold(True)
         font.setPointSize(14)  
-        # self.label1.setFont(font)
-        # self.label1.setGeometry(QRect(10, 20, 150, 20))
 
-
-        # # creating check box for choosing sensor
-        # self.checkBoxSWIR = QCheckBox("VNIR/SWIR", self.widget1) 
-        # self.checkBoxSWIR.setGeometry(10, 50, 100, 20) 
-        # self.checkBoxMWIR = QCheckBox("MWIR/LWIR", self.widget1) 
-        # self.checkBoxMWIR.setGeometry(120, 50, 100, 20)
-
-        # # calling the uncheck method if any check box state is changed 
-        # self.checkBoxSWIR.stateChanged.connect(self.select_sensor) 
-        # self.checkBoxMWIR.stateChanged.connect(self.select_sensor) 
-
-         # Select Reflectance files
+         # Select image folder for creating 'masked_spectrum'
         self.label1 = QLabel(self.widget1)
-        self.label1.setObjectName('Select image folder (i.e b1.1.2.hyc)')
-        self.label1.setText('Select image folder (i.e b1.1.2.hyc)')  
+        self.label1.setObjectName('Select image folder (i.e b1.1.2.hyc) for creating "masked_spectrum"')
+        self.label1.setText('Select image folder (i.e b1.1.2.hyc) for creating "masked_spectrum"')  
         self.label1.setFont(font)
-        self.label1.setGeometry(QRect(10, 20, 300, 20))
+        self.label1.setGeometry(QRect(10, 20, 455, 20))
 
-        # Button for loading Reflectance
+        # Button for loading folder and creating 
         self.btn1 = QPushButton(self.widget1)
-        self.btn1.setObjectName('Load Data')
-        self.btn1.setText('Load Data')
+        self.btn1.setObjectName('Load Folder')
+        self.btn1.setText('Load Folder')
         self.btn1.setGeometry(QRect(10, 50, 130, 40))
-        self.btn1.clicked.connect(self.reflectance_file_dialog)
+        self.btn1.clicked.connect(self.load_image_data)
 
-        # Message for loading Reflectance files
+        # Message for creating "masked_spectrum" folder
         self.label2 = QLabel(self.widget1)
-        self.label2.setObjectName('Data loaded')
+        self.label2.setObjectName('Dataset created')
         self.label2.setText('')
         self.label2.setStyleSheet("border: 0.5px solid gray;")
         self.label2.setGeometry(QRect(150, 55, 130, 30))
 
-        # Decode masks
+        # Select hylib objects from 'masked_spectrum'
         self.label3 = QLabel(self.widget1)
-        self.label3.setObjectName('Select file for decoding masks (Optional)')
-        self.label3.setText('Select file for decoding masks (Optional)')  
+        self.label3.setObjectName('Select hylib objects from "masked_spectrum"')
+        self.label3.setText('Select hylib objects from "masked_spectrum"')  
         self.label3.setFont(font)
-        self.label3.setGeometry(QRect(10, 105, 365, 20))
+        self.label3.setGeometry(QRect(10, 105, 455, 20))
 
-        # Button for loading decoding file
+        # Button for loading hylib objects 
         self.btn2 = QPushButton(self.widget1)
-        self.btn2.setObjectName('Decode masks')
-        self.btn2.setText('Decode masks')
+        self.btn2.setObjectName('Load Hylib')
+        self.btn2.setText('Load Hylib')
         self.btn2.setGeometry(QRect(10, 135, 130, 40))
-        self.btn2.clicked.connect(self.absorbance_file_dialog)
+        self.btn2.clicked.connect(self.load_image_data)
 
-        # Message for loading decoding file
+        # Message for for loading hylib objects 
         self.label4 = QLabel(self.widget1)
-        self.label4.setObjectName('Decoder loaded')
+        self.label4.setObjectName('Hylib loaded')
         self.label4.setText('')
         self.label4.setStyleSheet("border: 0.5px solid gray;")
         self.label4.setGeometry(QRect(150, 140, 130, 30))
@@ -115,7 +91,6 @@ class ImagingSensor(QScrollArea):
         self.label6.setStyleSheet("border: 0.5px solid gray;")
         self.label6.setGeometry(QRect(150, 225, 130, 30))
 
-        #### test
          # Select Reference spectrum
         self.label7 = QLabel(self.widget1)
         self.label7.setObjectName('Select Reference spectrum (Optional)')
@@ -136,7 +111,6 @@ class ImagingSensor(QScrollArea):
         self.label8.setText('')
         self.label8.setStyleSheet("border: 0.5px solid gray;")
         self.label8.setGeometry(QRect(150, 310, 130, 30))
-        #########
 
         # Select pre-processing method
         self.label9 = QLabel(self.widget1)
@@ -183,41 +157,27 @@ class ImagingSensor(QScrollArea):
                 self.sensor = 'MWIR_LWIR' 
 
 
-    def reflectance_file_dialog(self):
-        # Open the file dialog and get the selected file name
-        self.reflectance_files, _ = QFileDialog.getOpenFileNames(self)
-        if self.reflectance_files:
-            self.label3.setText("Reflectance loaded")
-            self.reflectance_df = load_reflectance(self.reflectance_files)
-            message = "Reflectance loaded" if self.reflectance_df is not None else "Error!"
-            self.label3.setText(message)
-        
-        # Get the batchname
-        if self.sensor == 'VNIR_SWIR':
-            clock = 3
-        elif self.sensor == 'MWIR_LWIR':
-            clock = 4
-        file_path = self.reflectance_files[0]
-        while clock:
-            file_path, folder = os.path.split(file_path)
-            clock -= 1
-        self.batchname = folder
-
-    def absorbance_file_dialog(self):
-        # Open the file dialog and get the selected file name
-        self.absorbance_files, _ = QFileDialog.getOpenFileNames(self)
-        if self.absorbance_files:
-            self.absorbance_df = load_absorbance(self.absorbance_files)
-            message = "Absorbance loaded" if self.absorbance_df is not None else "Error!"
-            self.label5.setText(message)
+    def load_image_data(self):
+        # Open dialog and get the selected image folder
+        self.image_folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+        if self.image_folder:
+            self.batchname = os.path.join(*os.path.normpath(self.image_folder).split(os.sep)[-2:])
+            # For creating undersampled masked image
+            create_masked_image(self.image_folder)
+            # Create hylib files from the masked area
+            # Averaged_df for visualisation
+            self.averaged_df = create_masked_spec(self.image_folder)
+            self.label2.setText('Dataset created')
             
-
+            
+    # TODO
+    # Remove repeatative function as PointSensor
     def open_library(self):
         # Open the file dialog and get the selected excel file
         # Load the file as pandas dataframe
         self.lib_path, _ = QFileDialog.getOpenFileName(self)
         if self.lib_path:
-            self.label7.setText("Library loaded")
+            self.label6.setText("Library loaded")
             self.library_df = pd.read_excel(self.lib_path)
 
     def open_spectrums(self):
@@ -227,8 +187,10 @@ class ImagingSensor(QScrollArea):
         self.spectrum_paths, _ = QFileDialog.getOpenFileNames(self)
         if self.spectrum_paths:
             self.refSpectrum_df = load_refSpectrum(self.spectrum_paths)
-            self.label9.setText('Spectrums loaded')
+            self.label8.setText('Spectrums loaded')
         
+    # TODO
+    # Fix this
     def select_rescaling(self, state):
         if state == Qt.Checked: 
             if self.sender() == self.checkBoxRescaling: 
@@ -245,34 +207,20 @@ class ImagingSensor(QScrollArea):
             
 
     def open_data(self):
-        df_plot = {}
-        if self.reflectance_files:
-            df_plot['Reflectance'] = (self.reflectance_df, 'Reflectance')
-        if self.absorbance_files:
-            df_plot['Absorbance'] = (self.absorbance_df, 'Absorbance')
-        if self.rescaling_flag:
-            df_plot['Reflectance (Re-scaled)'] = (self.reflectance_rescaled_df, 'Reflectance')
-            df_plot['Absorbance (Re-scaled)'] = (self.absorbance_rescaled_df, 'Absorbance')
-            pass
+        df_plot = {'Reflectance': (self.averaged_df, 'Reflectance')}
 
         # This creates vizualization to plot multiple data
         viz(self.batchname, df_plot, fingerprint_library=self.library_df, 
-            reference_Spectrums=self.refSpectrum_df,
-            sensor=self.sensor, download=self.download_flag)
+            sensor='imaging', reference_Spectrums=self.refSpectrum_df,
+            download=self.download_flag)
         # Check if del obj is possible
-        self.reflectance_files = None
-        self.absorbance_files = None
-        self.reflectance_df = None
-        self.absorbance_df = None
+        self.averaged_df = None
         self.batchname = None
         # self.library_df = None
         # self.rescaling_flag = False
         self.reflectance_rescaled_df = None
         self.absorbance_rescaled_df = None
-        # self.download_flag = False
-        self.label3.setText("")
-        self.label5.setText("")
-        # self.label7.setText("")
+        self.label2.setText("")
 
 
 

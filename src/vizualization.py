@@ -2,9 +2,46 @@ import ast
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
+import cv2
+import os
+
+import hylite
+from hylite import HyData, HyImage, HyCloud, HyLibrary, HyHeader, HyCollection, HyScene
+from hylite import io
+
+def create_masked_image(folder_path):
+    '''
+    This function will create a new RGB_masked.png image.
+    The image size is similar to the sensors and it will 
+    have masks with label as text on it.
+    '''
+    rgb_path = os.path.join(folder_path, 'RGB.png')
+    mask_path = os.path.join(folder_path, 'mask.hdr')
+    image = cv2.imread(rgb_path)
+    mask = io.load(mask_path)
+    # Resizing to sensor frame size
+    new_width = image.shape[0] // 6
+    new_height = image.shape[1] // 6
+    new_image = cv2.resize(image, (new_height, new_width))
+
+    # Add mask on image
+    mask_data = mask.data.astype(np.uint8)
+    mask_data = mask_data.T[0]
+    contours, _ = cv2.findContours(mask_data, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    output_image = new_image
+
+    for i, contour in enumerate(contours):
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.drawContours(output_image, [contour], -1, (0, 0, 255), 2)
+        mask_value = mask_data[y + h // 2, x + w // 2]
+        label_position = (x + w + 5, y + h // 2)  # Adjust position as needed
+        cv2.putText(output_image, str(mask_value), label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+    folder_location = os.path.dirname(rgb_path)
+    cv2.imwrite(os.path.join(folder_location,'RGB_masked.png'), output_image)
+
 
 def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
-        sensor='SWIR', download=True):
+        sensor='', download=True):
     fig = go.Figure()
     buttons = []
     start = 0
@@ -46,7 +83,7 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
         
         # Visualisation for fingerprint libraries
         if fingerprint_library is not None:
-            lib = fingerprint_library[fingerprint_library['sensor'] == sensor]
+            lib = fingerprint_library if sensor=='imaging' else fingerprint_library[fingerprint_library['sensor'] == sensor]
             unique_groups = lib['polymer'].unique()
             color_map = {group: px.colors.qualitative.Light24[i % len(px.colors.qualitative.Light24)] for i, group in enumerate(unique_groups)}
             for index, row in lib.iterrows():
@@ -80,52 +117,6 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
                     # Add a vertical line at x=2 using data coordinates
                     
                     end += 1
-                # ### NEW
-                # # Update layout to include the vertical lines' initial range
-                # fig.update_layout(
-                #     shapes=[dict(
-                #         x0=line_pos, x1=line_pos, y0=0, y1=4, xref='x', yref='y',
-                #         line_width=1, line_color='red'
-                #     ) for line_pos in wavelengths],
-                #     # xaxis_title="X-Axis",
-                #     # yaxis_title="Y-Axis",
-                #     # title="Dynamic Vertical Line Example",
-                # )
-
-                # # JavaScript function to update vertical line ranges
-                # # The actual implementation would depend on how you are serving your plot (e.g., Dash, Flask, or directly as HTML)
-                # # Here's a conceptual JavaScript code snippet for use with a browser-based Plotly plot:
-
-                # '''
-                # <script>
-                # function updateVerticalLines(traceIndices) {
-                # // traceIndices: array of indices of visible traces
-
-                # // 1. Get the maximum y-value of the visible traces
-                # let maxY = 0;
-                # for (let i = 0; i < traceIndices.length; i++) {
-                #     let traceIndex = traceIndices[i];
-                #     let trace = Plotly.getData()[traceIndex]; // Access the trace data
-                #     let traceMaxY = Math.max(...trace.y); // Find the maximum Y value
-                #     maxY = Math.max(maxY, traceMaxY); // Overall maximum
-                # }
-
-                # // 2. Update the y-values of the vertical lines
-                # let update = {};
-                # for (let i = 0; i < vertical_lines.length; i++) {
-                #     let lineIndex = 3 + i; // Assuming lines are added after the first 3 traces
-                #     update[`shapes[${i}].y1`] = maxY; // Update the height of the shape
-                # }
-
-                # // 3. Relayout the plot
-                # Plotly.relayout('yourPlotDivId', update);
-                # }
-
-                # // Example usage (call this function when legend items are clicked)
-                # // You'll need to add event listeners to your legend items to call this function
-                # </script>
-                # '''
-                # ######
 
         visible_dict[key] = (start, end)
         start = end
