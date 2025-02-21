@@ -17,6 +17,8 @@ class ImagingSensor(QScrollArea):
         self.image_folder = None
         self.averaged_df = None
         self.batchname = None
+        self.header_files = None
+        self.hylib_dict = None
         self.lib_path = None
         self.library_df = None
         self.spectrum_paths = None
@@ -40,7 +42,7 @@ class ImagingSensor(QScrollArea):
         self.btn1.setObjectName('Load Folder')
         self.btn1.setText('Load Folder')
         self.btn1.setGeometry(QRect(10, 50, 130, 40))
-        self.btn1.clicked.connect(self.load_image_data)
+        self.btn1.clicked.connect(self.open_image_data)
 
         # Message for creating "masked_spectrum" folder
         self.label2 = QLabel(self.widget1)
@@ -51,8 +53,8 @@ class ImagingSensor(QScrollArea):
 
         # Select hylib objects from 'masked_spectrum'
         self.label3 = QLabel(self.widget1)
-        self.label3.setObjectName('Select hylib objects from "masked_spectrum"')
-        self.label3.setText('Select hylib objects from "masked_spectrum"')  
+        self.label3.setObjectName('Select hylib objects from "masked_spectrum" (Optional)')
+        self.label3.setText('Select hylib objects from "masked_spectrum" (Optional)')  
         self.label3.setFont(font)
         self.label3.setGeometry(QRect(10, 105, 455, 20))
 
@@ -61,7 +63,7 @@ class ImagingSensor(QScrollArea):
         self.btn2.setObjectName('Load Hylib')
         self.btn2.setText('Load Hylib')
         self.btn2.setGeometry(QRect(10, 135, 130, 40))
-        self.btn2.clicked.connect(self.load_image_data)
+        self.btn2.clicked.connect(self.open_hylib)
 
         # Message for for loading hylib objects 
         self.label4 = QLabel(self.widget1)
@@ -157,11 +159,16 @@ class ImagingSensor(QScrollArea):
                 self.sensor = 'MWIR_LWIR' 
 
 
-    def load_image_data(self):
+    def open_image_data(self):
         # Open dialog and get the selected image folder
         self.image_folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         if self.image_folder:
-            self.batchname = os.path.join(*os.path.normpath(self.image_folder).split(os.sep)[-2:])
+            # batchname
+            path_components = self.image_folder.split(os.sep)
+            last_two = path_components[-2:]
+            result = '_'.join(last_two)
+            self.batchname = result
+            # self.batchname = os.path.join(*os.path.normpath(self.image_folder).split(os.sep)[-2:])
             # For creating undersampled masked image
             create_masked_image(self.image_folder)
             # Create hylib files from the masked area
@@ -169,7 +176,18 @@ class ImagingSensor(QScrollArea):
             self.averaged_df = create_masked_spec(self.image_folder)
             self.label2.setText('Dataset created')
             
-            
+    def open_hylib(self):
+        self.header_files, _ = QFileDialog.getOpenFileNames(self)
+        if self.header_files:
+            # self.batchname = os.path.join(*os.path.normpath(self.header_files[0]).split(os.sep)[-2:])
+            self.hylib_dict = load_hylib(self.header_files)
+            message = "Hylib loaded" if self.hylib_dict is not None else "Error!"
+            self.label4.setText(message)
+            # self.reflectance_df = load_reflectance(self.reflectance_files)
+            # self.label3.setText("Reflectance loaded")
+            pass
+
+
     # TODO
     # Remove repeatative function as PointSensor
     def open_library(self):
@@ -206,7 +224,7 @@ class ImagingSensor(QScrollArea):
                 self.download_flag = True
             
 
-    def open_data(self):
+    def open_data0(self):
         df_plot = {'Reflectance': (self.averaged_df, 'Reflectance')}
 
         # This creates vizualization to plot multiple data
@@ -221,6 +239,12 @@ class ImagingSensor(QScrollArea):
         self.reflectance_rescaled_df = None
         self.absorbance_rescaled_df = None
         self.label2.setText("")
+
+    def open_data(self):
+        viz_image_data(self.batchname, self.hylib_dict, download=self.download_flag)
+        # Check if del obj is possible
+        self.hylib_dict = None
+        self.label4.setText("")
 
 
 

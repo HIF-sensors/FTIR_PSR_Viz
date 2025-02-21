@@ -167,6 +167,28 @@ def create_masked_spec(folder_path):
 
     return final_df
 
+# For Image sensor
+# For loading saved hylib object
+# Select sample objects from only one sensor
+# Check if those are from the same sensor
+# otherwise through error
+def load_hylib(header_files):
+    hylib_dict = {}
+    wavelengths = None
+    for file in header_files:
+        _, name = os.path.split(file)
+        header = io.load(file)
+        if wavelengths is not None:
+            check = np.array_equal(wavelengths, header.get_wavelengths())
+            if check==False:
+                return None
+        wavelengths = header.get_wavelengths()
+        data = np.squeeze(header.data, axis=1)
+        df = pd.DataFrame(data, columns=header.get_wavelengths())
+        hylib_dict[name] = df
+    return hylib_dict
+
+
 
 
 

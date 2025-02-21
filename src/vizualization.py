@@ -41,7 +41,7 @@ def create_masked_image(folder_path):
 
 
 def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
-        sensor='', download=True):
+        sensor='', download=False):
     fig = go.Figure()
     buttons = []
     start = 0
@@ -175,4 +175,89 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
         fig.write_html(text + ".html")
      
     fig.show()
+
+# For imaging sensors
+def viz_image_data(batch_name, hylib_dict, download=False):
+    ### For colour
+    # define colors as a list 
+    colors = px.colors.qualitative.Plotly
+    # convert plotly hex colors to rgba to enable transparency adjustments
+    def hex_rgba(hex, transparency):
+        col_hex = hex.lstrip('#')
+        col_rgb = list(int(col_hex[i:i+2], 16) for i in (0, 2, 4))
+        col_rgb.extend([transparency])
+        areacol = tuple(col_rgb)
+        return areacol
+    rgba = [hex_rgba(c, transparency=0.2) for c in colors]
+    colCycle = ['rgba'+str(elem) for elem in rgba]
+    # Make sure the colors run in cycles if there are more lines than colors
+    def next_col(cols):
+        while True:
+            for col in cols:
+                yield col
+    line_color=next_col(cols=colCycle)
+    ########
+    fig = go.Figure()
+    for hylib_key, df in hylib_dict.items():
+        color = next(line_color)
+        x = [float(c) for c in df.columns]
+        y_upper = []
+        y_mean = []
+        y_lower = []
+        for (columnName, columnData) in df.items(): 
+            mean = columnData.mean().item()
+            std = np.std(columnData)
+            y_upper.append(mean+std)
+            y_mean.append(mean)
+            y_lower.append(mean-std)
+        
+        
+        # Add the shaded region
+        fig.add_trace(go.Scatter(
+            x=np.concatenate([x, x[::-1]]),  # x, then x reversed
+            y=np.concatenate([y_upper, y_lower[::-1]]),  # upper, then lower reversed
+            fill='tozeroy',  # or 'tozerox' if you have y=constant
+            fillcolor=color,  # Colour with some transparency
+            line=dict(color='rgba(255,255,255,0)'),  # No line
+            name=hylib_key,
+            hoverinfo='none', # Remove hover info for shaded area
+            showlegend=True, # Make sure this is True initially
+            legendgroup=hylib_key
+        ))
+
+        # line trace
+        fig.add_traces(go.Scatter(x=x,
+                                y=y_mean,
+                                line=dict(color=color, width=2.5),
+                                mode='lines',
+                                showlegend=False,
+                                legendgroup=hylib_key
+                                )
+                                    )
+
+    fig.update_layout(
+        # yaxis_range=[0, 1],
+        xaxis_title='Wavelength',
+        yaxis_title='Reflectance',
+        title={
+            'text': batch_name,
+            'font': {
+                'size': 24,
+                'color': 'black',
+                'family': 'Arial',
+                'weight': 'bold'
+            },
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+    )
+    fig.update_layout(hovermode="x unified")
+    # fig.update_layout(hovermode="y unified")
+    fig.update_traces(textposition='top center')
+
+    if download:
+        fig.write_html(batch_name + ".html")
+     
+    fig.show()
+    pass
     
