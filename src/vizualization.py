@@ -177,7 +177,7 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
     fig.show()
 
 # For imaging sensors
-def viz_image_data(batch_name, hylib_dict, download=False):
+def viz_image_data(batch_name, hylib_dict, output_path, sensor='', download=False):
     ### For colour
     # define colors as a list 
     colors = px.colors.qualitative.Plotly
@@ -234,13 +234,13 @@ def viz_image_data(batch_name, hylib_dict, download=False):
                                 legendgroup=hylib_key
                                 )
                                     )
-
+    text = batch_name + '_' + sensor
     fig.update_layout(
         # yaxis_range=[0, 1],
         xaxis_title='Wavelength',
         yaxis_title='Reflectance',
         title={
-            'text': batch_name,
+            'text': text,
             'font': {
                 'size': 24,
                 'color': 'black',
@@ -256,7 +256,7 @@ def viz_image_data(batch_name, hylib_dict, download=False):
     fig.update_traces(textposition='top center')
 
     if download:
-        fig.write_html(batch_name + ".html")
+        fig.write_html(os.path.join(output_path, text + ".html"))
      
     fig.show()
     pass

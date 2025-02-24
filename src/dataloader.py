@@ -142,7 +142,10 @@ def create_masked_spec(folder_path):
                     sample_name = decoder_df[decoder_df['mask']==label]['name'].values[0]
                 else:
                     sample_name = 'mask_'+str(label)
-                spectrum_path = os.path.join(output_path, (sample_name + '_' + s_key + '.hdr'))
+                sensor_path = os.path.join(output_path, s_key)
+                if not os.path.exists(sensor_path):
+                    os.makedirs(sensor_path)
+                spectrum_path = os.path.join(sensor_path, (sample_name + '_' + s_key + '.hdr'))
                 # if the path not exist then create header file
                 # otherwise just load the file
                 if not os.path.exists(spectrum_path):

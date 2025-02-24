@@ -16,7 +16,9 @@ class ImagingSensor(QScrollArea):
 
         self.image_folder = None
         self.averaged_df = None
-        self.batchname = None
+        self.batchname = ""
+        self.sensor = ""
+        self.output_path = None
         self.header_files = None
         self.hylib_dict = None
         self.lib_path = None
@@ -179,6 +181,8 @@ class ImagingSensor(QScrollArea):
     def open_hylib(self):
         self.header_files, _ = QFileDialog.getOpenFileNames(self)
         if self.header_files:
+            self.sensor = self.header_files[0].split(os.sep)[-2]
+            self.output_path, _ = os.path.split(self.header_files[0])
             # self.batchname = os.path.join(*os.path.normpath(self.header_files[0]).split(os.sep)[-2:])
             self.hylib_dict = load_hylib(self.header_files)
             message = "Hylib loaded" if self.hylib_dict is not None else "Error!"
@@ -224,24 +228,10 @@ class ImagingSensor(QScrollArea):
                 self.download_flag = True
             
 
-    def open_data0(self):
-        df_plot = {'Reflectance': (self.averaged_df, 'Reflectance')}
-
-        # This creates vizualization to plot multiple data
-        viz(self.batchname, df_plot, fingerprint_library=self.library_df, 
-            sensor='imaging', reference_Spectrums=self.refSpectrum_df,
-            download=self.download_flag)
-        # Check if del obj is possible
-        self.averaged_df = None
-        self.batchname = None
-        # self.library_df = None
-        # self.rescaling_flag = False
-        self.reflectance_rescaled_df = None
-        self.absorbance_rescaled_df = None
-        self.label2.setText("")
-
     def open_data(self):
-        viz_image_data(self.batchname, self.hylib_dict, download=self.download_flag)
+        viz_image_data(self.batchname, self.hylib_dict, output_path=self.output_path, 
+                       sensor=self.sensor, 
+                       download=self.download_flag)
         # Check if del obj is possible
         self.hylib_dict = None
         self.label4.setText("")
