@@ -15,18 +15,22 @@ class PointSensor(QScrollArea):
         layout1.setAlignment(Qt.AlignTop)
 
         self.sensor = None
+        self.search_text = None #TODO: make this text from user input
         self.reflectance_files = None
         self.absorbance_files = None
         self.reflectance_df = None
         self.absorbance_df = None
-        self.batchname = None
+        self.batchname = ''
         self.lib_path = None
         self.library_df = None
         self.spectrum_paths = None
         self.refSpectrum_df = None
         self.rescaling_flag = False
+        self.average_flag = False
         self.reflectance_rescaled_df = None
         self.absorbance_rescaled_df = None
+        self.reflectance_averaged_df = None
+        self.absorbance_averaged_df = None
         self.download_flag = False
         # self.setFixedWidth(500)
         # self.setFixedHeight(670)
@@ -145,10 +149,15 @@ class PointSensor(QScrollArea):
         self.label10.setFont(font)
         self.label10.setGeometry(QRect(10, 435, 365, 20))
 
-        # creating check box for choosing sensor
+        # creating check box for re-scaling
         self.checkBoxRescaling = QCheckBox("Y-axis rescaling", self.widget1) 
         self.checkBoxRescaling.setGeometry(10, 465, 160, 30)
         self.checkBoxRescaling.stateChanged.connect(self.select_rescaling)
+
+        # creating check box for choosing sensor
+        self.checkBoxAverage = QCheckBox("Average", self.widget1) 
+        self.checkBoxAverage.setGeometry(160, 465, 160, 30)
+        self.checkBoxAverage.stateChanged.connect(self.select_average)
 
         # Start visualization
         self.label11 = QLabel(self.widget1)
@@ -178,38 +187,47 @@ class PointSensor(QScrollArea):
             if self.sender() == self.checkBoxSWIR: 
                 self.checkBoxMWIR.setChecked(False) 
                 self.sensor = 'VNIR_SWIR' 
+                self.search_text = 'Measurement:'
             elif self.sender() == self.checkBoxMWIR:  
                 self.checkBoxSWIR.setChecked(False) 
                 self.sensor = 'MWIR_LWIR' 
+                self.search_text = 'XYUNITS'
 
-
-    def reflectance_file_dialog(self):
-        # Open the file dialog and get the selected file name
-        self.reflectance_files, _ = QFileDialog.getOpenFileNames(self)
-        if self.reflectance_files:
-            self.label3.setText("Reflectance loaded")
-            self.reflectance_df = load_reflectance(self.reflectance_files)
-            message = "Reflectance loaded" if self.reflectance_df is not None else "Error!"
-            self.label3.setText(message)
-        
+    def create_batchname(self, file_path):
         # Get the batchname
         if self.sensor == 'VNIR_SWIR':
             clock = 3
         elif self.sensor == 'MWIR_LWIR':
             clock = 4
-        file_path = self.reflectance_files[0]
         while clock:
             file_path, folder = os.path.split(file_path)
             clock -= 1
         self.batchname = folder
 
+    
+    def reflectance_file_dialog(self):
+        # Open the file dialog and get the selected file name
+        self.reflectance_files, _ = QFileDialog.getOpenFileNames(self)
+        if self.reflectance_files:
+            self.reflectance_df = load_data(self.reflectance_files, data_type='reflectance',
+                           search_text= self.search_text)
+            message = "Reflectance loaded" if self.reflectance_df is not None else "Error!"
+            self.label3.setText(message)
+            ###
+        if not self.batchname:
+            self.create_batchname(self.reflectance_files[0])
+        
+        
     def absorbance_file_dialog(self):
         # Open the file dialog and get the selected file name
         self.absorbance_files, _ = QFileDialog.getOpenFileNames(self)
         if self.absorbance_files:
-            self.absorbance_df = load_absorbance(self.absorbance_files)
+            self.absorbance_df = load_data(self.absorbance_files, data_type='absorbance',
+                           search_text= self.search_text)
             message = "Absorbance loaded" if self.absorbance_df is not None else "Error!"
             self.label5.setText(message)
+        if not self.batchname:
+            self.create_batchname(self.absorbance_files[0])
             
 
     def open_library(self):
@@ -237,6 +255,19 @@ class PointSensor(QScrollArea):
                     self.reflectance_rescaled_df = rescale_data(self.reflectance_df)
                 if self.absorbance_files:
                     self.absorbance_rescaled_df = rescale_data(self.absorbance_df)
+
+    def select_average(self, state):
+        if state == Qt.Checked: 
+            if self.sender() == self.checkBoxAverage: 
+                self.average_flag = True
+                if self.reflectance_files:
+                    self.reflectance_averaged_df = average_data(self.reflectance_df, 
+                                                                self.reflectance_files[0],
+                                                                signal_type= 'Reflectance')
+                if self.absorbance_files:
+                    self.absorbance_averaged_df = average_data(self.absorbance_df, 
+                                                               self.absorbance_files[0],
+                                                               signal_type= 'Absorbance')
 
     def select_download(self, state):
         if state == Qt.Checked: 

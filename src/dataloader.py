@@ -4,6 +4,7 @@ import numpy as np
 import hylite
 from hylite import io
 import copy
+import re
 
 def is_float(s):
     try:
@@ -11,7 +12,80 @@ def is_float(s):
         return True
     except ValueError:
         return False
-        
+
+def check_and_extract_line(file_path, search_text):
+    with open(file_path, 'r') as file:
+        content = file.read()
+    if search_text in content:
+        # Use regex to find the line starting with the specified 'line' variable
+        pattern = f"^{re.escape(search_text)}.*$"
+        match = re.search(pattern, content, re.MULTILINE)
+        if match:
+            return True, match.group(0)
+    return False, None
+
+def find_xy(extracted_line):
+    if re.search(r'reflectance', extracted_line, re.IGNORECASE):
+        return 'wavelength', 'reflectance'
+    elif re.search(r'absorbance', extracted_line, re.IGNORECASE):
+        wavenumber_present = bool(re.search(r'wavenumber', extracted_line, re.IGNORECASE))
+        wavelength_present = bool(re.search(r'nanometer', extracted_line, re.IGNORECASE))
+        if wavenumber_present:
+            return 'wavenumber', 'absorbance'
+        elif wavelength_present:
+            return 'wavelength', 'absorbance'
+
+
+# For point sensors
+# Load all type of files
+# Reflectance/ Absorbance/ Nanometer/ Wavenumber
+def load_data(paths, data_type, search_text):
+    all_energy = []
+    for file_path in paths:
+        seach_text_present, extracted_line = check_and_extract_line(file_path, search_text)
+        x_axis, y_axis = find_xy(extracted_line)
+        if y_axis != data_type:
+            return None
+
+        filename = os.path.basename(file_path)
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+
+        if x_axis == 'wavelength':
+            sample_energy = [filename]
+            wavelength_list = ['sample']
+            for line0 in lines:
+                line = line0.strip().split(" ")
+                if is_float(line[0]):
+                    wavelength = float(line[0])
+                    energy = float(line[-1])
+                    sample_energy.append(energy)
+                    wavelength_list.append(wavelength)
+            all_energy.append(sample_energy)
+
+        elif x_axis == 'wavenumber':
+            sample_energy = []
+            wavelength_list = []
+            for line0 in lines:
+                line = line0.strip().split(" ")
+                if is_float(line[0]):
+                    energy = float(line[-1])
+                    sample_energy = [energy] + sample_energy
+                    # TODO
+                    # Fill wavelength list only for one sample file to avoid
+                    # iterative process
+                    wavenumber = float(line[0])
+                    wavelength = (1/wavenumber)* (10 ** 7)
+                    wavelength_list = [wavelength] + wavelength_list
+            wavelength_list = ['sample'] + wavelength_list
+            sample_energy = [filename] + sample_energy
+            all_energy.append(sample_energy)
+
+    df = pd.DataFrame(all_energy, columns=wavelength_list)
+    return df
+
+
+
 # For Point sensor
 def load_reflectance(reflectance_paths):
     all_energy = []
