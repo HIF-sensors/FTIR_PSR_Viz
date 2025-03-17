@@ -155,7 +155,7 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
     fig.update_layout(
         # yaxis_range=[0, 1],
         xaxis_title='Wavelength',
-        yaxis_title='Reflectance',
+        # yaxis_title='Reflectance',
         title={
             'text': batch_name + " : " + sensor,
             'font': {

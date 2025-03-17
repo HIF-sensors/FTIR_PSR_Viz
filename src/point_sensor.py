@@ -132,7 +132,7 @@ class PointSensor(QScrollArea):
         self.btn4.setObjectName('Load Spectrums')
         self.btn4.setText('Load Spectrums')
         self.btn4.setGeometry(QRect(10, 380, 130, 40))
-        self.btn4.clicked.connect(self.open_spectrums)
+        self.btn4.clicked.connect(self.open_refSpectrums)
 
         # Message for Reference spectrum
         self.label9 = QLabel(self.widget1)
@@ -209,7 +209,7 @@ class PointSensor(QScrollArea):
         # Open the file dialog and get the selected file name
         self.reflectance_files, _ = QFileDialog.getOpenFileNames(self)
         if self.reflectance_files:
-            self.reflectance_df = load_data(self.reflectance_files, data_type='reflectance',
+            self.reflectance_df, _ = load_data(self.reflectance_files, signal_type='reflectance',
                            search_text= self.search_text)
             message = "Reflectance loaded" if self.reflectance_df is not None else "Error!"
             self.label3.setText(message)
@@ -222,7 +222,7 @@ class PointSensor(QScrollArea):
         # Open the file dialog and get the selected file name
         self.absorbance_files, _ = QFileDialog.getOpenFileNames(self)
         if self.absorbance_files:
-            self.absorbance_df = load_data(self.absorbance_files, data_type='absorbance',
+            _, self.absorbance_df = load_data(self.absorbance_files, signal_type='absorbance',
                            search_text= self.search_text)
             message = "Absorbance loaded" if self.absorbance_df is not None else "Error!"
             self.label5.setText(message)
@@ -238,13 +238,21 @@ class PointSensor(QScrollArea):
             self.label7.setText("Library loaded")
             self.library_df = pd.read_excel(self.lib_path)
 
-    def open_spectrums(self):
+    def open_refSpectrums(self):
         # Select one or multiple .txt files for reference spectrum
         # Open the file dialog and get the selected .txt files
         # Load the file as pandas dataframe
         self.spectrum_paths, _ = QFileDialog.getOpenFileNames(self)
         if self.spectrum_paths:
-            self.refSpectrum_df = load_refSpectrum(self.spectrum_paths)
+            # self.refSpectrum_df = load_refSpectrum(self.spectrum_paths)
+            ###
+            reflectance_df, absorbance_df = load_data(self.spectrum_paths, signal_type='reference',
+                           search_text= self.search_text)
+            if reflectance_df is not None:
+                self.reflectance_df = pd.concat([self.reflectance_df, reflectance_df], axis=0)
+            if absorbance_df is not None:
+                self.absorbance_df = pd.concat([self.absorbance_df, absorbance_df], axis=0)
+            ###
             self.label9.setText('Spectrums loaded')
         
     def select_rescaling(self, state):
