@@ -67,10 +67,11 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
             end += 1
         
         # Visualisation for Reference Spectrum libraries
-        if reference_Spectrums is not None:
-            wavelengths = list(reference_Spectrums.columns)[1:]
-            for index, row in reference_Spectrums.iterrows():
-                polymer_name = row['polymer']
+        if reference_Spectrums:
+            ref_df = reference_Spectrums[key]
+            wavelengths = list(ref_df.columns)[1:]
+            for index, row in ref_df.iterrows():
+                polymer_name = list(row)[0]
                 energy = list(row)[1:]
                 graph = go.Scatter(x=wavelengths, y=energy, name = polymer_name, mode='lines',
                                 visible=(key_index == 0),
@@ -238,7 +239,7 @@ def viz_image_data(batch_name, hylib_dict, output_path, sensor='', download=Fals
     fig.update_layout(
         # yaxis_range=[0, 1],
         xaxis_title='Wavelength',
-        yaxis_title='Reflectance',
+        # yaxis_title='Reflectance',
         title={
             'text': text,
             'font': {

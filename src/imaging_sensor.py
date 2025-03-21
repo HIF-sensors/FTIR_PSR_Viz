@@ -124,9 +124,9 @@ class ImagingSensor(QScrollArea):
         self.label9.setGeometry(QRect(10, 360, 365, 20))
 
         # creating check box for choosing sensor
-        self.checkBoxRescaling = QCheckBox("Y-axis rescaling", self.widget1) 
-        self.checkBoxRescaling.setGeometry(10, 390, 160, 30)
-        self.checkBoxRescaling.stateChanged.connect(self.select_rescaling)
+        self.checkBoxAbsorbance = QCheckBox("Absorbance", self.widget1) 
+        self.checkBoxAbsorbance.setGeometry(10, 390, 160, 30)
+        self.checkBoxAbsorbance.stateChanged.connect(self.select_absorbance)
 
         # Start visualization
         self.label10 = QLabel(self.widget1)
@@ -213,14 +213,16 @@ class ImagingSensor(QScrollArea):
         
     # TODO
     # Fix this
-    def select_rescaling(self, state):
+    def select_absorbance(self, state):
         if state == Qt.Checked: 
-            if self.sender() == self.checkBoxRescaling: 
+            if self.sender() == self.checkBoxAbsorbance: 
                 self.rescaling_flag = True
-                if self.reflectance_files:
-                    self.reflectance_rescaled_df = rescale_data(self.reflectance_df)
-                if self.absorbance_files:
-                    self.absorbance_rescaled_df = rescale_data(self.absorbance_df)
+                if self.hylib_dict is not None:
+                    self.absorbance_df = self.convert_absorbance()
+
+    def convert_absorbance(self):
+        x = self.hylib_dict
+        pass
 
     def select_download(self, state):
         if state == Qt.Checked: 

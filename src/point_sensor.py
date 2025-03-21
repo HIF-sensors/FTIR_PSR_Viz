@@ -24,7 +24,7 @@ class PointSensor(QScrollArea):
         self.lib_path = None
         self.library_df = None
         self.spectrum_paths = None
-        self.refSpectrum_df = None
+        self.refSpectrum_df = {}
         self.rescaling_flag = False
         self.average_flag = False
         self.reflectance_rescaled_df = None
@@ -246,12 +246,14 @@ class PointSensor(QScrollArea):
         if self.spectrum_paths:
             # self.refSpectrum_df = load_refSpectrum(self.spectrum_paths)
             ###
-            reflectance_df, absorbance_df = load_data(self.spectrum_paths, signal_type='reference',
+            reflectRef_df, absorbRef_df = load_data(self.spectrum_paths, signal_type='reference',
                            search_text= self.search_text)
-            if reflectance_df is not None:
-                self.reflectance_df = pd.concat([self.reflectance_df, reflectance_df], axis=0)
-            if absorbance_df is not None:
-                self.absorbance_df = pd.concat([self.absorbance_df, absorbance_df], axis=0)
+            if reflectRef_df is not None:
+                # self.reflectance_df = pd.concat([self.reflectance_df, reflectRef_df], axis=0)
+                self.refSpectrum_df['Reflectance'] = reflectRef_df
+            if absorbRef_df is not None:
+                # self.absorbance_df = pd.concat([self.absorbance_df, absorbRef_df], axis=0)
+                self.refSpectrum_df['Absorbance'] = absorbRef_df
             ###
             self.label9.setText('Spectrums loaded')
         
@@ -311,6 +313,7 @@ class PointSensor(QScrollArea):
         # self.download_flag = False
         self.label3.setText("")
         self.label5.setText("")
+        self.label9.setText("")
         # self.label7.setText("")
 
 
