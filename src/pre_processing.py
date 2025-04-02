@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+from hylite import HyImage
 
 def rescale_data(df):
     new = []

@@ -169,6 +169,7 @@ def create_masked_spec(folder_path):
     final_df = None
     for s_key, s_value in sensors.items():
         wavelengths = [float(w) for w in s_value.get_wavelengths()]
+        s_value.data = s_value.data[0:mask.data.shape[0], 0:mask.data.shape[1], :]
         s_value[:,:,:][mask[:,:,0]==0] = np.nan
         sample_list = []
         for label in mask_labels:

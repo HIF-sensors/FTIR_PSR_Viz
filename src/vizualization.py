@@ -80,7 +80,9 @@ def viz(batch_name, df_plot, fingerprint_library=None, reference_Spectrums=None,
                 data.append(graph)
                 fig.add_trace(graph)
                 end += 1
-            
+            # TODO: remove redundancy
+            max_energy = max(max_energy, ref_df.iloc[:, 1:].max().max()) # For plotting vertical lines 
+            min_energy = min(min_energy, ref_df.iloc[:, 1:].min().min()) # For plotting vertical lines  
         
         # Visualisation for fingerprint libraries
         if fingerprint_library is not None:

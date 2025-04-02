@@ -214,8 +214,8 @@ class PointSensor(QScrollArea):
             message = "Reflectance loaded" if self.reflectance_df is not None else "Error!"
             self.label3.setText(message)
             ###
-        if not self.batchname:
-            self.create_batchname(self.reflectance_files[0])
+            if not self.batchname:
+                self.create_batchname(self.reflectance_files[0])
         
         
     def absorbance_file_dialog(self):
@@ -226,8 +226,8 @@ class PointSensor(QScrollArea):
                            search_text= self.search_text)
             message = "Absorbance loaded" if self.absorbance_df is not None else "Error!"
             self.label5.setText(message)
-        if not self.batchname:
-            self.create_batchname(self.absorbance_files[0])
+            if not self.batchname:
+                self.create_batchname(self.absorbance_files[0]) 
             
 
     def open_library(self):

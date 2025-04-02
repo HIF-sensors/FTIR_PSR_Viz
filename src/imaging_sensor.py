@@ -6,6 +6,7 @@ from PyQt5.QtGui import *
 from .dataloader import *
 from .vizualization import *
 from .pre_processing import *
+from hylite import HyImage
 
 class ImagingSensor(QScrollArea):
     def __init__(self):
@@ -221,9 +222,22 @@ class ImagingSensor(QScrollArea):
                     self.absorbance_df = self.convert_absorbance()
 
     def convert_absorbance(self):
-        x = self.hylib_dict
-        pass
+        new_path = os.path.join(self.output_path, "absorbance")
+        if not os.path.exists(new_path):
+            os.makedirs(new_path)
+        for file_name, df in self.hylib_dict.items():
+            # Convert df to HyImage
+            hy_image = HyImage(df.values[:, np.newaxis, :])
+            absorbance = kubelka_munk_hylite(hy_image)
+            absorbance.set_wavelengths(df.columns.tolist())
+            new_file = file_name.split(".hdr")[0] + "_absorbance.hdr"
+            new_file_path = os.path.join(new_path, new_file)
+            if not os.path.exists(new_file_path):
+                io.save(new_file_path, absorbance)
 
+
+        pass
+    
     def select_download(self, state):
         if state == Qt.Checked: 
             if self.sender() == self.checkBoxDownload: 
