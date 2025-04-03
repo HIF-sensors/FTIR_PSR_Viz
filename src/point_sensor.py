@@ -247,7 +247,7 @@ class PointSensor(QScrollArea):
             # self.refSpectrum_df = load_refSpectrum(self.spectrum_paths)
             ###
             reflectRef_df, absorbRef_df = load_data(self.spectrum_paths, signal_type='reference',
-                           search_text= self.search_text)
+                           search_text= 'XYUNITS')
             if reflectRef_df is not None:
                 # self.reflectance_df = pd.concat([self.reflectance_df, reflectRef_df], axis=0)
                 self.refSpectrum_df['Reflectance'] = reflectRef_df
