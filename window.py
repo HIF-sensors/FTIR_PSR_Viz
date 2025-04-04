@@ -49,6 +49,7 @@ class MyTabWidget(QWidget):
 
 
 if __name__ == '__main__':
+    print('Starting GUI')
     app = QApplication(sys.argv)
     ex = App()
     sys.exit(app.exec_())
